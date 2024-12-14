@@ -2,17 +2,21 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/joho/godotenv"
+	"github.com/nextep-community/digo/commands"
 	gocord "github.com/nextep-community/gocord"
 	"github.com/nextep-community/gocord/bot"
 	"github.com/nextep-community/gocord/discord"
+	"github.com/nextep-community/gocord/events"
 	"github.com/nextep-community/gocord/gateway"
 	"github.com/nextep-community/gocord/handler"
 	"github.com/nextep-community/gocord/handler/middleware"
@@ -33,21 +37,14 @@ func main() {
 	slog.Info("Envs", slog.Any("DISCORD_TOKEN:", token), slog.Any("APPLICATION_ID:", applicationID))
 
 	r := handler.New()
+
 	r.Use(middleware.Logger)
+
 	r.NotFound(func(event *handler.InteractionEvent) error {
 		return event.CreateMessage(discord.MessageCreate{Content: "not found"})
 	})
 
-	r.SlashCommand("/ping", func(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-		return e.CreateMessage(discord.MessageCreate{
-			Content: "pong",
-			Components: []discord.ContainerComponent{
-				discord.ActionRowComponent{
-					discord.NewPrimaryButton("Test", "/test"),
-				},
-			},
-		})
-	})
+	r.SlashCommand("/ping", commands.HandlePing)
 
 	client, err := gocord.New(token,
 		bot.WithGatewayConfigOpts(
@@ -56,6 +53,36 @@ func main() {
 			),
 		),
 		bot.WithEventListeners(r),
+		bot.WithEventListeners(&events.ListenerAdapter{
+			OnMessageCreate: func(event *events.MessageCreate) {
+				if event.Message.Author.Bot {
+					return
+				}
+
+				message := event.Message
+				content := strings.TrimPrefix(message.Content, "!")
+				parts := strings.Fields(content)
+				command := parts[0]
+
+				switch command {
+				case "ping":
+					_, _ = event.Client().Rest().CreateMessage(message.ChannelID, discord.MessageCreate{
+						Content: "Pong!",
+					})
+
+				case "hello":
+					_, _ = event.Client().Rest().CreateMessage(message.ChannelID, discord.MessageCreate{
+						Content: fmt.Sprintf("Olá, %s!", message.Author.Username),
+					})
+
+				default:
+					_, _ = event.Client().Rest().CreateMessage(message.ChannelID, discord.MessageCreate{
+						Content: fmt.Sprintf("Comando desconhecido: `%s`", command),
+					})
+				}
+
+			},
+		}),
 	)
 
 	if err != nil {
@@ -79,15 +106,8 @@ func main() {
 	<-s
 }
 
-var Commands = []discord.ApplicationCommandCreate{
-	discord.SlashCommandCreate{
-		Name:        "ping",
-		Description: "Replies with pong",
-	},
-}
-
 func registerCommands(client bot.Client) {
-	response, err := client.Rest().SetGlobalCommands(snowflake.MustParse(os.Getenv("APPLICATION_ID")), Commands)
+	response, err := client.Rest().SetGlobalCommands(snowflake.MustParse(os.Getenv("APPLICATION_ID")), commands.Commands)
 
 	if err != nil {
 		slog.Error("error while registering commands", slog.Any("err", err))
