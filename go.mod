@@ -3,10 +3,9 @@ module github.com/nextep-community/digo
 go 1.23.3
 
 require (
-	github.com/joho/godotenv v1.5.1
+	github.com/disgoorg/disgo v0.18.14
 	github.com/disgoorg/snowflake/v2 v2.0.3
-	github.com/nextep-community/gocord v0.0.0-20241120174833-cc25ff9312a0
-
+	github.com/joho/godotenv v1.5.1
 )
 
 require (

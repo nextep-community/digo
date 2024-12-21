@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/nextep-community/gocord/discord"
-	"github.com/nextep-community/gocord/handler"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/handler"
 )
 
 var pingCommand = discord.SlashCommandCreate{

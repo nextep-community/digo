@@ -10,16 +10,16 @@ import (
 	"strings"
 	"syscall"
 
+	gocord "github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/disgo/handler"
+	"github.com/disgoorg/disgo/handler/middleware"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/joho/godotenv"
 	"github.com/nextep-community/digo/commands"
-	gocord "github.com/nextep-community/gocord"
-	"github.com/nextep-community/gocord/bot"
-	"github.com/nextep-community/gocord/discord"
-	"github.com/nextep-community/gocord/events"
-	"github.com/nextep-community/gocord/gateway"
-	"github.com/nextep-community/gocord/handler"
-	"github.com/nextep-community/gocord/handler/middleware"
 )
 
 func main() {
